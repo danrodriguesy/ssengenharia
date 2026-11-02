@@ -25,11 +25,12 @@
         <img src="imagens/logo.png" alt="logo" id="logo" />
       </a>
 
-      <a href="#" class="elevate-hamburger" aria-label="Menu">
+      <button type="button" class="elevate-hamburger" aria-label="Abrir menu"
+        aria-controls="mobile-nav" aria-expanded="false">
         <span></span>
         <span></span>
         <span></span>
-      </a>
+      </button>
 
       <nav class="elevate-navigation">
         <a href="#projects">Projetos</a>
@@ -44,14 +45,6 @@
       </a>
 
     </header>
-
-    <nav class="elevate-mobile-nav">
-      <a href="#projects">Projetos</a>
-      <a href="#services">Serviços</a>
-      <a href="#about">Sobre nós</a>
-      <a href="#clients">Clientes</a>
-      <a href="#contact">Contato</a>
-    </nav>
 
     <!-- HERO CONTENT -->
     <main class="elevate-content">
@@ -380,7 +373,7 @@
       <!-- Cabeçalho -->
       <header class="marwa-about__header">
         <div class="marwa-about__label">
-          <span>Sobre a Elevate</span>
+          <span>Sobre a S&S Engenharia</span>
         </div>
 
         <h2 class="marwa-about__heading">
@@ -816,6 +809,40 @@
   </footer>
 
 
+  <!-- MOBILE MENU -->
+  <nav class="elevate-mobile-nav" id="mobile-nav" aria-label="Menu principal" aria-hidden="true">
+
+    <div class="elevate-mobile-nav__top">
+      <a href="#" class="elevate-mobile-nav__logo" aria-label="S&amp;S Engenharia — início">
+        <img src="imagens/logo.png" alt="S&amp;S Engenharia">
+      </a>
+
+      <button type="button" class="elevate-mobile-nav__close" aria-label="Fechar menu">
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+
+    <div class="elevate-mobile-nav__links">
+      <a href="#projects"><span>01</span>Projetos</a>
+      <a href="#services"><span>02</span>Serviços</a>
+      <a href="#about"><span>03</span>Sobre nós</a>
+      <a href="#clients"><span>04</span>Clientes</a>
+      <a href="#contact"><span>05</span>Contato</a>
+    </div>
+
+    <div class="elevate-mobile-nav__footer">
+      <a href="#contact" class="elevate-mobile-nav__cta">
+        Entre em contato
+      </a>
+
+      <p class="elevate-mobile-nav__note">
+        Engenharia e construções de alto padrão.
+      </p>
+    </div>
+
+  </nav>
+
   <div class="project-modal" id="project-modal" aria-hidden="true">
     <div class="project-modal__backdrop" data-project-close></div>
 
@@ -873,27 +900,8 @@
   <script src="js/vendor/gsap.min.js"></script>
   <script src="js/vendor/ScrollTrigger.min.js"></script>
   <script src="js/vendor/SplitText.min.js"></script>
+  <script src="js/mobile-menu.js"></script>
   <script src="js/main.js"></script>
-<script>
-  // Mobile menu toggle
-  const hamburger = document.querySelector('.elevate-hamburger');
-  const mobileNav = document.querySelector('.elevate-mobile-nav');
-  const body = document.body;
-
-  if (hamburger && mobileNav) {
-    hamburger.addEventListener('click', function () {
-      mobileNav.classList.toggle('open');
-      body.classList.toggle('menu-open');
-    });
-
-    mobileNav.querySelectorAll('a').forEach(link => {
-      link.addEventListener('click', function () {
-        mobileNav.classList.remove('open');
-        body.classList.remove('menu-open');
-      });
-    });
-  }
-</script>
   <script src="js/gallery.js"></script>
   <script src="js/services-accordion.js"></script>
   <script src="js/project-modal.js"></script>

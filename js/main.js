@@ -7,9 +7,56 @@
   if (ScrollTrigger) gsap.registerPlugin(ScrollTrigger);
   if (window.SplitText) gsap.registerPlugin(window.SplitText);
 
+  // Evita "pulos" quando a barra de endereço do mobile aparece/some
+  if (ScrollTrigger && ScrollTrigger.config) {
+    ScrollTrigger.config({ ignoreMobileResize: true });
+  }
+
   var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var hasScroll = typeof ScrollTrigger === 'function';
   var hasSplit = typeof window.SplitText === 'function';
+
+  /* =========================================
+     SCROLL REVEALS — helper
+     Entrada padrão de todas as seções:
+     opacity + leve deslocamento, preso ao scroll.
+     ========================================= */
+
+  function revealOnScroll(elements, trigger, options) {
+    var list = (elements || []).filter(Boolean);
+    if (!list.length || !hasScroll) return;
+
+    var opts = options || {};
+
+    var fromVars = { autoAlpha: 0 };
+    var toVars = {
+      autoAlpha: 1,
+      duration: opts.duration || 0.9,
+      stagger: opts.stagger || 0,
+      ease: opts.ease || 'power3.out',
+      scrollTrigger: {
+        trigger: trigger || list[0],
+        start: opts.start || 'top 90%',
+        end: opts.end || 'top 60%',
+        scrub: opts.scrub == null ? true : opts.scrub
+      }
+    };
+
+    if (opts.x != null) {
+      fromVars.x = opts.x;
+      toVars.x = 0;
+    } else {
+      fromVars.y = opts.y == null ? 26 : opts.y;
+      toVars.y = 0;
+    }
+
+    if (opts.scale) {
+      fromVars.scale = opts.scale;
+      toVars.scale = 1;
+    }
+
+    gsap.fromTo(list, fromVars, toVars);
+  }
 
   var footerYear = document.querySelector('.vucko-footer__year');
 
@@ -336,6 +383,7 @@
     var projectsViewport = sectionTwo.querySelector('.projects-viewport');
     var projectsReveal = projectsViewport || projectsGrid;
     var catalogHeader = sectionTwo.querySelector('.catalog-header');
+    var catalogFooter = sectionTwo.querySelector('.catalog-footer');
 
     if (constructionHeading) {
       if (hasSplit && hasScroll) {
@@ -486,6 +534,22 @@
         }
       });
     }
+
+    if (catalogFooter && hasScroll) {
+      gsap.from(catalogFooter.children, {
+        y: 24,
+        autoAlpha: 0,
+        duration: 0.9,
+        stagger: 0.1,
+        ease: 'power2.out',
+        scrollTrigger: {
+          trigger: catalogFooter,
+          start: 'top 96%',
+          end: 'top 72%',
+          scrub: true
+        }
+      });
+    }
   }
 
   /* =========================================
@@ -507,6 +571,16 @@
     var servicesItems = Array.prototype.slice.call(
       servicesSection.querySelectorAll('.architecture-services__item')
     );
+    var servicesVisual = servicesSection.querySelector(
+      '.architecture-services__image-wrapper'
+    );
+
+    revealOnScroll([servicesVisual], servicesVisual, {
+      y: 34,
+      scale: 1.03,
+      start: 'top 92%',
+      end: 'top 55%'
+    });
 
     if (servicesEyebrow) {
       gsap.from(servicesEyebrow, {
@@ -592,8 +666,18 @@
       aboutSection.querySelectorAll('.marwa-about__feature')
     );
     var aboutActions = aboutSection.querySelector('.marwa-about__actions');
-    var aboutCards = Array.prototype.slice.call(
-      aboutSection.querySelectorAll('.marwa-about__card')
+    var aboutInfoCard = aboutSection.querySelector('.marwa-about__card--info');
+    var aboutImageCard = aboutSection.querySelector('.marwa-about__card--image');
+    var aboutGalleryCard = aboutSection.querySelector('.marwa-about__card--gallery');
+    var aboutMainImage = aboutSection.querySelector('.marwa-about__main-image');
+    var aboutImageTitle = aboutSection.querySelector('.marwa-about__image-title');
+    var aboutPhotos = Array.prototype.slice.call(
+      aboutSection.querySelectorAll('.marwa-about__photo')
+    );
+    var aboutPhotosWrap = aboutSection.querySelector('.marwa-about__photos');
+    var aboutCompass = aboutSection.querySelector('.marwa-about__compass');
+    var aboutGalleryDescription = aboutSection.querySelector(
+      '.marwa-about__gallery-description'
     );
     var aboutStats = Array.prototype.slice.call(
       aboutSection.querySelectorAll('.marwa-about__stat')
@@ -691,20 +775,112 @@
       });
     }
 
-    if (aboutCards.length) {
-      gsap.from(aboutCards, {
-        autoAlpha: 0,
-        duration: 0.9,
-        stagger: 0.12,
-        ease: 'power3.out',
+    /* Cards entram de baixo para cima, cada um com ritmo próprio */
+    revealOnScroll([aboutInfoCard], aboutInfoCard, {
+      y: 70,
+      start: 'top 92%',
+      end: 'top 52%'
+    });
+
+    revealOnScroll([aboutImageCard], aboutImageCard, {
+      y: 110,
+      start: 'top 95%',
+      end: 'top 50%'
+    });
+
+    revealOnScroll([aboutGalleryCard], aboutGalleryCard, {
+      y: 90,
+      start: 'top 95%',
+      end: 'top 50%'
+    });
+
+    /* Fotos da colagem: esquerda → direita e de baixo para cima */
+    if (aboutPhotos.length) {
+      var aboutPhotoEntrances = [
+        { x: -80, y: 18, scale: 0.9 },
+        { x: 0, y: 78, scale: 0.94 },
+        { x: 90, y: 26, scale: 0.9 }
+      ];
+
+      var aboutPhotosTimeline = gsap.timeline({
         scrollTrigger: {
-          trigger: aboutSection.querySelector('.marwa-about__grid') || aboutCards[0],
-          start: 'top 88%',
-          end: 'top 40%',
+          trigger: aboutPhotosWrap || aboutGalleryCard,
+          start: 'top 94%',
+          end: 'top 48%',
+          scrub: true
+        }
+      });
+
+      aboutPhotos.forEach(function (photo, index) {
+        var conf = aboutPhotoEntrances[index] || { x: 0, y: 60, scale: 0.94 };
+
+        aboutPhotosTimeline.fromTo(photo, {
+          autoAlpha: 0,
+          x: conf.x,
+          y: conf.y,
+          scale: conf.scale
+        }, {
+          autoAlpha: 1,
+          x: 0,
+          y: 0,
+          scale: 1,
+          duration: 1,
+          ease: 'power3.out'
+        }, index * 0.14);
+      });
+    }
+
+    /* Imagem principal: parallax com zoom constante (sem abrir fresta) */
+    if (aboutMainImage && aboutImageCard) {
+      gsap.fromTo(aboutMainImage, {
+        scale: 1.16,
+        yPercent: 5
+      }, {
+        scale: 1.14,
+        yPercent: -5,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: aboutImageCard,
+          start: 'top bottom',
+          end: 'bottom top',
           scrub: true
         }
       });
     }
+
+    /* Título da imagem desliza da direita para a esquerda */
+    revealOnScroll([aboutImageTitle], aboutImageCard, {
+      x: 48,
+      start: 'top 88%',
+      end: 'top 52%'
+    });
+
+    /* Bússola gira e cresce na entrada */
+    if (aboutCompass) {
+      gsap.fromTo(aboutCompass, {
+        autoAlpha: 0,
+        scale: 0.45,
+        rotate: -120
+      }, {
+        autoAlpha: 1,
+        scale: 1,
+        rotate: 0,
+        duration: 1,
+        ease: 'power3.out',
+        scrollTrigger: {
+          trigger: aboutInfoCard,
+          start: 'top 88%',
+          end: 'top 52%',
+          scrub: true
+        }
+      });
+    }
+
+    revealOnScroll([aboutGalleryDescription], aboutGalleryCard, {
+      y: 24,
+      start: 'top 92%',
+      end: 'top 58%'
+    });
 
     if (aboutStats.length) {
       gsap.from(aboutStats, {
@@ -724,6 +900,146 @@
   }
 
 
+
+  /* =========================================
+     CLIENTS — SCROLL REVEALS
+     ========================================= */
+
+  var clientsSection = document.querySelector('.partners-section');
+
+  if (clientsSection) {
+    var partnersTitle = clientsSection.querySelector('.partners-section__title');
+    var partnersDescription = clientsSection.querySelector('.partners-section__description');
+    var partnersLogos = clientsSection.querySelector('.partners-section__logos');
+
+    if (partnersTitle && hasSplit && hasScroll) {
+      window.SplitText.create(partnersTitle, {
+        type: 'words',
+        autoSplit: true,
+        wordsClass: 'vision-word',
+        onSplit: function (self) {
+          return gsap.fromTo(self.words, { opacity: 0.16 }, {
+            opacity: 1,
+            ease: 'none',
+            stagger: 0.08,
+            scrollTrigger: {
+              trigger: partnersTitle,
+              start: 'top 85%',
+              end: 'bottom 60%',
+              scrub: true
+            }
+          });
+        }
+      });
+    } else {
+      revealOnScroll([partnersTitle], partnersTitle, { y: 22 });
+    }
+
+    revealOnScroll([partnersDescription], partnersDescription, {
+      y: 20,
+      start: 'top 92%',
+      end: 'top 62%'
+    });
+
+    revealOnScroll([partnersLogos], clientsSection, {
+      x: -30,
+      start: 'top 82%',
+      end: 'top 45%'
+    });
+  }
+
+  /* =========================================
+     CONTACT — SCROLL REVEALS
+     ========================================= */
+
+  var contactSection = document.querySelector('.contact-section');
+
+  if (contactSection) {
+    var contactIntroParts = [
+      contactSection.querySelector('.contact-section__eyebrow'),
+      contactSection.querySelector('.contact-section__title'),
+      contactSection.querySelector('.contact-section__description')
+    ];
+
+    var contactDetails = Array.prototype.slice.call(
+      contactSection.querySelectorAll('.contact-section__detail')
+    );
+
+    var contactFormCard = contactSection.querySelector('.contact-section__form-card');
+
+    var contactFormParts = contactFormCard ? Array.prototype.slice.call(
+      contactFormCard.querySelectorAll(
+        '.contact-section__form-title, .contact-section__form-description, .contact-section__field, .contact-section__submit'
+      )
+    ) : [];
+
+    revealOnScroll(contactIntroParts, contactSection, {
+      y: 28,
+      stagger: 0.1,
+      start: 'top 80%',
+      end: 'top 32%'
+    });
+
+    revealOnScroll(contactDetails, contactSection.querySelector('.contact-section__details'), {
+      y: 22,
+      stagger: 0.08,
+      start: 'top 92%',
+      end: 'top 55%'
+    });
+
+    revealOnScroll(contactFormParts, contactFormCard, {
+      y: 20,
+      stagger: 0.07,
+      start: 'top 90%',
+      end: 'top 45%'
+    });
+  }
+
+  /* =========================================
+     FOOTER — SCROLL REVEALS
+     ========================================= */
+
+  var footer = document.querySelector('.vucko-footer');
+
+  if (footer) {
+    var footerTitles = Array.prototype.slice.call(
+      footer.querySelectorAll('.vucko-footer__nav-title')
+    );
+    var footerLinks = Array.prototype.slice.call(
+      footer.querySelectorAll('.vucko-footer__nav-list li')
+    );
+    var footerBrand = footer.querySelector('.vucko-footer__brand');
+    var footerBottom = Array.prototype.slice.call(
+      footer.querySelectorAll('.vucko-footer__back-top, .vucko-footer__copyright')
+    );
+
+    revealOnScroll(footerTitles, footer, {
+      y: 18,
+      stagger: 0.1,
+      start: 'top 96%',
+      end: 'top 62%'
+    });
+
+    revealOnScroll(footerLinks, footer, {
+      y: 16,
+      stagger: 0.05,
+      start: 'top 96%',
+      end: 'top 50%'
+    });
+
+    revealOnScroll([footerBrand], footer, {
+      y: 26,
+      start: 'top 92%',
+      end: 'top 55%'
+    });
+
+    revealOnScroll(footerBottom, footer, {
+      y: 18,
+      stagger: 0.08,
+      start: 'top 90%',
+      end: 'top 55%'
+    });
+  }
 
   /* =========================================
      SECTION COVER — same transition as home → section 2
